@@ -8,3 +8,7 @@ faiss-cpu
 streamlit
 tavily-python
 langchain-tavily
+graphviz 
+pydot
+networkx
+matplotlib

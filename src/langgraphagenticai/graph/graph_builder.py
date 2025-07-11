@@ -5,6 +5,52 @@ from src.langgraphagenticai.nodes.basic_chatbot_node import BasicChatbotNode
 from src.langgraphagenticai.tools.search_tool import get_tools,create_tool_node
 from langgraph.prebuilt import tools_condition,ToolNode
 from src.langgraphagenticai.nodes.chatbot_with_Tool_node import ChatbotWithToolNode
+import networkx as nx
+import matplotlib.pyplot as plt
+
+def save_graph_with_networkx(graph_builder, filename="graph_image.png"):
+    G = nx.DiGraph()
+
+    # Add nodes
+    for node in graph_builder.nodes:
+        G.add_node(node)
+
+    # Add edges
+    for source, target in graph_builder.edges:
+        G.add_edge(source, target)
+
+    # Draw and save the graph
+    pos = nx.spring_layout(G)  # or use nx.shell_layout(G), etc.
+    plt.figure(figsize=(8, 6))
+    nx.draw(G, pos, with_labels=True, node_size=2000, node_color='skyblue', font_size=10, font_weight='bold', arrows=True)
+    plt.title("LangGraph Flow")
+    plt.savefig(filename)
+    plt.close()
+    print(f"✅ Graph saved as {filename}")
+
+def save_langgraph_graph(builder, filename="graph.png"):
+    
+    G = nx.DiGraph()
+    # internal_graph = builder  # Only available before compile
+
+    for node in builder.nodes:
+        G.add_node(node)
+
+    for source, target in builder.edges:
+        G.add_edge(source, target)
+
+    # Draw
+    pos = nx.spring_layout(G, seed=42)
+    plt.figure(figsize=(10, 7))
+    nx.draw(G, pos, with_labels=True, node_size=2000, node_color="lightblue", font_size=10, arrows=True)
+    plt.title("LangGraph Workflow")
+    plt.axis("off")
+    plt.savefig(filename)
+    plt.close()
+    print(f"✅ Graph saved as {filename}")
+
+
+
 
 class GraphBuilder:
     def __init__(self,model):
@@ -24,6 +70,9 @@ class GraphBuilder:
         self.graph_builder.add_node("chatbot",self.basic_chatbot_node.process)
         self.graph_builder.add_edge(START,"chatbot")
         self.graph_builder.add_edge("chatbot",END)
+
+        save_graph_with_networkx(self.graph_builder, "basic_chatbot_graph")
+
 
     def chatbot_with_tools_build_graph(self):
         """
@@ -51,6 +100,10 @@ class GraphBuilder:
         self.graph_builder.add_edge(START,"chatbot")
         self.graph_builder.add_conditional_edges("chatbot",tools_condition)
         self.graph_builder.add_edge("tools","chatbot")
+
+        save_langgraph_graph(self.graph_builder, "chatbot_graph.png")
+
+
 
     def setup_graph(self, usecase: str):
         """
